@@ -1,7 +1,17 @@
+'''
+Module that contains functions that process over data from
+the dataset and create csv file for further work
+'''
+
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderUnavailable
 
-def read_file(path, year):
+def read_file(path: str, year: int) -> dict:
+    '''
+    This function operates over the given file, gets information about
+    films filmed in a given year and returns dictionary with information
+    place - [place coords, films filmed in this place]
+    '''
     location_dct = {}
     with open(path) as file:
         i = 0
@@ -23,8 +33,7 @@ def read_file(path, year):
                 continue
             if line[0] in used_films:
                 continue
-            else:
-                used_films.append(line[0])
+            used_films.append(line[0])
             location_dct = update_dct(location_dct, line)
             if len(location_dct) == 50:
                 print('Please, wait for us to process the data.')
@@ -37,7 +46,15 @@ def read_file(path, year):
     return location_dct
 
 
-def get_coords(location: str):
+def get_coords(location: str) -> tuple:
+    '''
+    This function creates request via geopy and returns
+    location coordinations.
+    >>> get_coords('Kyiv, Ukraine')
+    (50.4500336, 30.5241361)
+    >>> get_coords('Lviv, Ukraine')
+    (49.841952, 24.0315921)
+    '''
     geolocator = Nominatim(user_agent="my_request")
     try:
         loc = geolocator.geocode(location)
@@ -49,14 +66,18 @@ def get_coords(location: str):
         return get_coords(location)
     return loc.latitude, loc.longitude
 
-def update_dct(data_dct, data):
+def update_dct(data_dct: dict, data: list) -> dict:
+    '''
+    Updates dictionary with information about film in a given location
+    and location coords.
+    '''
     location = data[-1]
     name_date = data[:-1]
     if location in data_dct:
         if name_date in data_dct[location]:
             return data_dct
         data_dct[location].append(name_date)
-    else:   
+    else:
         coord = get_coords(location)
         if coord is None:
             return data_dct
@@ -64,7 +85,13 @@ def update_dct(data_dct, data):
     return data_dct
 
 
-def process_data_and_location(data):
+def process_data_and_location(data: list) -> list:
+    '''
+    Gets information about film name, year and location from dataset line
+    splitted by tabs
+    >>> process_data_and_location(['"111 Emergency" (2011)','Auckland, New Zealand'])
+    ['111 Emergency', '2011', 'Auckland, New Zealand']
+    '''
     new_data = []
     if '"' in data[0]:
         get_name_date = data[0].split('"')
@@ -95,6 +122,9 @@ def process_data_and_location(data):
     return new_data
 
 def create_csv(film_data: dict):
+    '''
+    Creates csv file with modified information from dictionary
+    '''
     with open('locations.csv', mode='w') as file:
         file.write('name,year,lat,lon\n')
         for place in film_data:
@@ -102,7 +132,3 @@ def create_csv(film_data: dict):
             date = film_data[place][1][1]
             lat, lon = film_data[place][0]
             file.write(f"{name},{date},{lat},{lon}\n")
-
-if __name__ == '__main__':
-    film_data = read_file('/Users/shevdan/Documents/Programming/Python/semester2/lab2/small_file.list', 2017)
-    create_csv(film_data)
