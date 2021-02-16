@@ -18,7 +18,7 @@ def user_interaction() -> tuple:
     '''
     year = int(input("Please enter a year you would like to have a map for:\n"))
     location = input("Please enter your location (format: lat, long):\n")
-    path = input('Please, enter path to directory, where datset is stored wothout "/".\n\
+    path = input('Please, enter path to directory, where dataset is stored wothout "/".\n\
 Example: /Users/shevdan/Documents/Programming. :\n')
     location = location.rstrip().split(',')
     location = tuple(map(float, location))
